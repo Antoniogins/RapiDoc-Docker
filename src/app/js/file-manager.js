@@ -257,28 +257,16 @@ class FileManager {
                 throw new Error('No specification is currently loaded');
             }
 
-            // Extract file ID from the URL pattern /api/file/raw/{filename}
-            const filename = specUrl.split('/').pop();
-            
-            // Get the original file details
-            const specsResponse = await fetch(`${this.apiUrl}/specs`);
-            const specs = await specsResponse.json();
-            const currentSpec = specs.find(spec => spec.file_path === filename);
-
-            if (!currentSpec) {
-                throw new Error('Could not find original file details');
-            }
-
-            // Fetch the content
+            // Fetch the content to force download
             const response = await fetch(specUrl);
             const content = await response.text();
             
-            // Create blob and download with original filename
+            // Create blob and download
             const blob = new Blob([content], { type: 'text/yaml' });
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = currentSpec.file_path;  // Use the original file path
+            a.download = specUrl.split('/').pop();
             document.body.appendChild(a);
             a.click();
             window.URL.revokeObjectURL(url);
