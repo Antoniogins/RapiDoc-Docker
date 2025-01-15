@@ -1,17 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     const iframe = document.querySelector('iframe');
     const toggleThemeBtn = document.getElementById('toggleTheme');
-    const expandAllBtn = document.getElementById('expandAll');
-    const collapseAllBtn = document.getElementById('collapseAll');
     
-    // Prevent dropdown from closing when clicking buttons
-    const dropdownItems = document.querySelectorAll('.dropdown-item');
-    dropdownItems.forEach(item => {
-        item.addEventListener('click', (e) => {
-            e.stopPropagation();
-        });
-    });
-
     // Theme handling
     const getTheme = () => document.documentElement.getAttribute('data-bs-theme');
     const isDark = () => getTheme() === 'dark';
@@ -20,7 +10,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.documentElement.setAttribute('data-bs-theme', theme);
         localStorage.setItem('theme', theme);
         
-        // Update dropdown icon visibility based on theme
+        // Update button icon visibility based on theme
         const activeIcon = document.querySelector('[data-theme-icon-active]');
         const inactiveIcon = document.querySelector('[data-theme-icon-inactive]');
         if (theme === 'dark') {
@@ -53,15 +43,6 @@ document.addEventListener('DOMContentLoaded', function() {
     toggleThemeBtn.addEventListener('click', () => {
         const newTheme = isDark() ? 'light' : 'dark';
         setTheme(newTheme);
-    });
-
-    // Other button handlers
-    expandAllBtn.addEventListener('click', () => {
-        iframe.contentWindow.postMessage({ action: 'expandAll' }, '*');
-    });
-
-    collapseAllBtn.addEventListener('click', () => {
-        iframe.contentWindow.postMessage({ action: 'collapseAll' }, '*');
     });
 
     // Listen for theme changes from the iframe

@@ -13,18 +13,8 @@ class FileManager {
         document.getElementById('createFileBtn').addEventListener('click', () => this.showEditModal());
         document.getElementById('refreshListBtn').addEventListener('click', () => this.refreshFileList());
         document.getElementById('saveFileBtn').addEventListener('click', () => this.saveFile());
-
-        // Add file manager button to the settings dropdown
-        const settingsDropdown = document.querySelector('.dropdown-menu');
-        const fileManagerItem = document.createElement('li');
-        fileManagerItem.innerHTML = `
-            <button class="dropdown-item d-flex align-items-center" id="openFileManager">
-                <i class="bi bi-folder-fill me-2"></i>
-                <span>File Manager</span>
-            </button>
-        `;
-        settingsDropdown.insertBefore(fileManagerItem, settingsDropdown.firstChild);
         
+        // File Manager button in header
         document.getElementById('openFileManager').addEventListener('click', () => {
             this.showFileManager();
         });
@@ -98,10 +88,10 @@ class FileManager {
         const response = await fetch(`${this.apiUrl}/specs`);
         const files = await response.json();
         
-        console.log('Files received:', files); // Debug log
+        console.log('Files received:', files);
         
         tbody.innerHTML = files.map(file => {
-            console.log('Processing file:', file); // Debug log for each file
+            console.log('Processing file:', file);
             return `
                 <tr>
                     <td>${file.name}</td>
@@ -112,10 +102,13 @@ class FileManager {
                             <button class="btn btn-primary" onclick="fileManager.showEditModal(${file.id})" title="Edit">
                                 <i class="bi bi-pencil-fill text-white"></i>
                             </button>
+                            <button class="btn btn-info" onclick="fileManager.duplicateFile(${file.id})" title="Duplicate">
+                                <i class="bi bi-files text-white"></i>
+                            </button>
                             <button class="btn btn-danger" onclick="fileManager.deleteFile(${file.id})" title="Delete">
                                 <i class="bi bi-trash-fill text-white"></i>
                             </button>
-                            <button class="btn btn-secondary" onclick="fileManager.copyPath(${file.id})" title="Copy Path">
+                            <button class="btn btn-secondary" onclick="fileManager.copyPath(${file.id}, event)" title="Copy Path">
                                 <i class="bi bi-clipboard-fill text-white"></i>
                             </button>
                             <button class="btn btn-success" onclick="fileManager.loadFile(${file.id})" title="Load">
@@ -177,14 +170,14 @@ class FileManager {
         }
     }
 
-    async copyPath(id) {
+    async copyPath(id, event) {
         try {
             const response = await fetch(`${this.apiUrl}/specs/${id}`);
             const file = await response.json();
             await navigator.clipboard.writeText(file.file_path);
             
             // Show a temporary success message
-            const btn = event.target.closest('button');
+            const btn = event ? event.target.closest('button') : document.querySelector(`button[onclick="fileManager.copyPath(${id})"]`);
             const originalHtml = btn.innerHTML;
             btn.innerHTML = '<i class="bi bi-check-lg text-white"></i>';
             setTimeout(() => btn.innerHTML = originalHtml, 1000);
@@ -212,6 +205,40 @@ class FileManager {
             }
         } catch (error) {
             alert(`Error loading file: ${error.message}`);
+        }
+    }
+
+    async duplicateFile(id) {
+        try {
+            // Get the original file data
+            const response = await fetch(`${this.apiUrl}/specs/${id}`);
+            const originalFile = await response.json();
+            
+            // Pre-fill the form with original data
+            const form = document.getElementById('fileEditForm');
+            form.fileName.value = `${originalFile.name} (Copy)`;
+            form.filePath.value = originalFile.file_path;
+            form.fileDescription.value = originalFile.description;
+            
+            // Get the file content
+            const contentResponse = await fetch(`${this.apiUrl}/file/raw/${originalFile.file_path}`);
+            const content = await contentResponse.blob();
+            
+            // Create a new file object
+            const newFile = new File([content], originalFile.file_path, {
+                type: 'application/x-yaml'
+            });
+            
+            // Store the file for later use
+            this.currentFile = newFile;
+            this.currentEditId = null; // Ensure we're creating a new file
+            
+            // Show the edit modal
+            const modalTitle = document.getElementById('fileEditModalLabel');
+            modalTitle.textContent = 'Duplicate Specification';
+            this.fileEditModal.show();
+        } catch (error) {
+            alert(`Error duplicating file: ${error.message}`);
         }
     }
 }
