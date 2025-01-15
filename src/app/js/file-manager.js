@@ -13,6 +13,7 @@ class FileManager {
         document.getElementById('createFileBtn').addEventListener('click', () => this.showEditModal());
         document.getElementById('refreshListBtn').addEventListener('click', () => this.refreshFileList());
         document.getElementById('saveFileBtn').addEventListener('click', () => this.saveFile());
+        document.getElementById('downloadFileBtn').addEventListener('click', () => this.downloadCurrentSpec());
         
         // File Manager button in header
         document.getElementById('openFileManager').addEventListener('click', () => {
@@ -99,20 +100,24 @@ class FileManager {
                     <td>${new Date(file.updated_at).toLocaleString()}</td>
                     <td>
                         <div class="btn-group btn-group-sm">
-                            <button class="btn btn-primary" onclick="fileManager.showEditModal(${file.id})" title="Edit">
+                            <button class="btn btn-primary" onclick="fileManager.loadFile(${file.id})" title="Open">
+                                <i class="bi bi-arrow-up-right-square-fill text-white me-1"></i>
+                                <span class="text-white">Open</span>
+                            </button>
+                            <button class="btn btn-success" onclick="fileManager.showEditModal(${file.id})" title="Edit">
                                 <i class="bi bi-pencil-fill text-white"></i>
                             </button>
-                            <button class="btn btn-info" onclick="fileManager.duplicateFile(${file.id})" title="Duplicate">
+                            <button class="btn btn-success" onclick="fileManager.duplicateFile(${file.id})" title="Duplicate">
                                 <i class="bi bi-files text-white"></i>
+                            </button>
+                            <button class="btn btn-success" onclick="fileManager.copyPath(${file.id}, event)" title="Copy Path">
+                                <i class="bi bi-clipboard-fill text-white"></i>
+                            </button>
+                            <button class="btn btn-success" onclick="fileManager.downloadSpec(${file.id})" title="Download">
+                                <i class="bi bi-download text-white"></i>
                             </button>
                             <button class="btn btn-danger" onclick="fileManager.deleteFile(${file.id})" title="Delete">
                                 <i class="bi bi-trash-fill text-white"></i>
-                            </button>
-                            <button class="btn btn-secondary" onclick="fileManager.copyPath(${file.id}, event)" title="Copy Path">
-                                <i class="bi bi-clipboard-fill text-white"></i>
-                            </button>
-                            <button class="btn btn-success" onclick="fileManager.loadFile(${file.id})" title="Load">
-                                <i class="bi bi-arrow-up-right-square-fill text-white"></i>
                             </button>
                         </div>
                     </td>
@@ -239,6 +244,72 @@ class FileManager {
             this.fileEditModal.show();
         } catch (error) {
             alert(`Error duplicating file: ${error.message}`);
+        }
+    }
+
+    async downloadCurrentSpec() {
+        try {
+            const iframe = document.querySelector('iframe');
+            const rapidocElement = iframe.contentDocument.querySelector('rapi-doc');
+            const specUrl = rapidocElement.getAttribute('spec-url');
+            
+            if (!specUrl) {
+                throw new Error('No specification is currently loaded');
+            }
+
+            // Extract file ID from the URL pattern /api/file/raw/{filename}
+            const filename = specUrl.split('/').pop();
+            
+            // Get the original file details
+            const specsResponse = await fetch(`${this.apiUrl}/specs`);
+            const specs = await specsResponse.json();
+            const currentSpec = specs.find(spec => spec.file_path === filename);
+
+            if (!currentSpec) {
+                throw new Error('Could not find original file details');
+            }
+
+            // Fetch the content
+            const response = await fetch(specUrl);
+            const content = await response.text();
+            
+            // Create blob and download with original filename
+            const blob = new Blob([content], { type: 'text/yaml' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = currentSpec.file_path;  // Use the original file path
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        } catch (error) {
+            alert(`Error downloading specification: ${error.message}`);
+        }
+    }
+
+    async downloadSpec(id) {
+        try {
+            // Get the file details
+            const response = await fetch(`${this.apiUrl}/specs/${id}`);
+            const spec = await response.json();
+            
+            // Get the file content
+            const contentResponse = await fetch(`${this.apiUrl}/file/raw/${spec.file_path}`);
+            const content = await contentResponse.text();
+            
+            // Create blob and download
+            const blob = new Blob([content], { type: 'text/yaml' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = spec.file_path;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        } catch (error) {
+            alert(`Error downloading specification: ${error.message}`);
         }
     }
 }
