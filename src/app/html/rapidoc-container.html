@@ -1,0 +1,37 @@
+<div class="show" id="rapidoc-container" style="height: 100vh; width: 100%">
+  <!-- Some options have been removed for testing -->
+  <!-- style="min-height: 100vh" -->
+  <script type="module" src="https://unpkg.com/rapidoc/dist/rapidoc-min.js"></script>
+  <rapi-doc
+    css-file="/css/swagger.css"
+    css-classes="nav-bar-paths-under-tag"
+    render-style="read"
+    schema-style="table"
+    regular-font="HelvNeueOrange"
+    mono-font="HelvNeueOrange"
+    font-size="large"
+    schema-expand-level="2"
+    allow-try="false"
+    allow-authentication="false"
+    use-path-in-nav-bar="false"
+    show-method-in-nav-bar="as-colored-text"
+    nav-active-item-marker="left-bar"
+    info-description-headings-in-navbar="true"
+    on-nav-tag-click="expand-collapse"
+    load-fonts="false"
+    theme="light"
+    text-color="#000"
+    header-color="#000"
+    primary-color="#F16E00"
+    nav-bg-color="#fff"
+    show-header="false"
+    spec-url="https://petstore.swagger.io/v2/swagger.json"
+    id="rapidoc-component"
+    data-dashlane-shadowhost="true"
+    data-dashlane-observed="true"
+  >
+    <!-- img slot="logo" src="/od-content/themes/od/img/orange-logo.svg" -->
+    <!-- img slot="nav-logo" src="/od-content/themes/od/img/orange-logo.svg" style="display:none" -->
+    <!-- button onclick="getStaticRapidoc()" class="btn btn-primary" style="margin-top: 20px;margin-left: 20px;">Download this documentation</button --></rapi-doc
+  >
+</div>
