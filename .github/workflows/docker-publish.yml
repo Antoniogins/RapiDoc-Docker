@@ -25,7 +25,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v4
         with:
-          images: ${{ secrets.DOCKER_USERNAME }}/<repository-name>
+          images: ${{ secrets.DOCKER_USERNAME }}/rapidoc-docker-filemanager
           tags: |
             type=raw,value=latest
             type=sha,prefix={{date 'YYYYMMDD'}}-
