@@ -1,0 +1,11 @@
+version: '3.8'
+
+services:
+  rapidoc:
+    image: antoniogines/rapidoc-docker-filemanager:latest
+    container_name: rapidoc-filemanager
+    ports:
+      - "8080:8080"
+      - "3000:3000"
+    volumes:
+      - ./api:/app/api
